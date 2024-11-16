@@ -1,1 +1,1 @@
-### Cryptify | Empowering your crypto journey
+### CoinHub | Empowering your crypto journey
