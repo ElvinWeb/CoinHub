@@ -128,3 +128,70 @@ async function fetchData() {
     ),
   ]);
 }
+
+function displayTrends(data) {
+  displayTrendCoins(data.coins.slice(0, 5));
+  displayTrendNfts(data.nfts.slice(0, 5));
+}
+
+function displayTrendCoins(coins) {
+  const coinsList = document.getElementById("coins-list");
+  coinsList.innerHTML = "";
+  const table = createTable(["Coin", "Price", "Market Cap", "Volume", "24h%"]);
+
+  coins.forEach((coin) => {
+    const coinData = coin.item;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td class="name-column table-fixed-column"><img src="${
+            coinData.thumb
+          }" alt="${coinData.name}"> ${
+      coinData.name
+    } <span>(${coinData.symbol.toUpperCase()})</span></td>
+          <td>${parseFloat(coinData.price_btc).toFixed(6)}</td>
+          <td>$${coinData.data.market_cap}</td>
+          <td>$${coinData.data.total_volume}</td>
+          <td class="${
+            coinData.data.price_change_percentage_24h.usd >= 0 ? "green" : "red"
+          }">${coinData.data.price_change_percentage_24h.usd.toFixed(2)}%</td>
+      `;
+    row.onclick = () =>
+      (window.location.href = `../../pages/coin.html?coin=${coinData.id}`);
+    table.appendChild(row);
+  });
+  coinsList.appendChild(table);
+}
+
+function displayTrendNfts(nfts) {
+  const nftsList = document.getElementById("nfts-list");
+  nftsList.innerHTML = "";
+  const table = createTable(["NFT", "Market", "Price", "24h Vol", "24h%"]);
+
+  nfts.forEach((nft) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td class="name-column table-fixed-column"><img src="${
+            nft.thumb
+          }" alt="${nft.name}"> ${
+      nft.name
+    } <span>(${nft.symbol.toUpperCase()})</span></td>
+          <td>${nft.native_currency_symbol.toUpperCase()}</td>
+          <td>$${nft.data.floor_price}</td>
+          <td>$${nft.data.h24_volume}</td>
+          <td class="${
+            parseFloat(nft.data.floor_price_in_usd_24h_percentage_change) >= 0
+              ? "green"
+              : "red"
+          }">${parseFloat(
+      nft.data.floor_price_in_usd_24h_percentage_change
+    ).toFixed(2)}%</td>
+      `;
+    table.appendChild(row);
+  });
+  nftsList.appendChild(table);
+}
+
+function displayAssets() {}
+function displayExchanges() {}
+function displayCategories() {}
+function displayCompanies() {}
