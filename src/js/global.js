@@ -117,3 +117,27 @@ function createTable(headers, fixedIndex = 0) {
 
   return table;
 }
+
+function createWidget(containerId, widgetConfig, widgetSrc) {
+  const container = document.getElementById(containerId);
+
+  container.innerHTML = "";
+
+  const widgetDiv = document.createElement("div");
+  widgetDiv.classList.add("tradingview-widget-container__widget");
+  container.appendChild(widgetDiv);
+
+  const script = document.createElement("script");
+  script.type = "text/javascript";
+  script.src = widgetSrc;
+  script.async = true;
+  script.innerHTML = JSON.stringify(widgetConfig);
+  container.appendChild(script);
+
+  setTimeout(() => {
+    const copyright = document.querySelector(".tradingview-widget-copyright");
+    if (copyright) {
+      copyright.classList.remove("hidden");
+    }
+  }, 5000);
+}

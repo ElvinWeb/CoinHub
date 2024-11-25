@@ -191,7 +191,213 @@ function displayTrendNfts(nfts) {
   nftsList.appendChild(table);
 }
 
-function displayAssets() {}
-function displayExchanges() {}
-function displayCategories() {}
-function displayCompanies() {}
+function displayAssets(data) {
+  const cryptoList = document.getElementById("asset-list");
+  cryptoList.innerHTML = "";
+  const table = createTable(
+    [
+      "Rank",
+      "Coin",
+      "Price",
+      "24h Price",
+      "24h Price %",
+      "Total Vol",
+      "Market Cap",
+      "Last 7 Days",
+    ],
+    1
+  );
+
+  const sparklineData = [];
+  data.forEach((asset) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td class="rank">${asset.market_cap_rank}</td>
+          <td class="name-column table-fixed-column"><img src="${
+            asset.image
+          }" alt="${asset.name}"> ${
+      asset.name
+    } <span>(${asset.symbol.toUpperCase()})</span></td>
+          <td>$${asset.current_price.toFixed(2)}</td>
+          <td class="${
+            asset.price_change_percentage_24h >= 0 ? "green" : "red"
+          }">$${asset.price_change_24h.toFixed(2)}</td>
+          <td class="${
+            asset.price_change_percentage_24h >= 0 ? "green" : "red"
+          }">${asset.price_change_percentage_24h.toFixed(2)}%</td>
+          <td>$${asset.total_volume.toLocaleString()}</td>
+          <td>$${asset.market_cap.toLocaleString()}</td>
+          <td><canvas id="chart-${
+            asset.id
+          }" width="100" height="50"></canvas></td>
+      `;
+    table.appendChild(row);
+    sparklineData.push({
+      id: asset.id,
+      sparkline: asset.sparkline_in_7d.price,
+      color:
+        asset.sparkline_in_7d.price[0] <=
+        asset.sparkline_in_7d.price[asset.sparkline_in_7d.price.length - 1]
+          ? "green"
+          : "red",
+    });
+    row.onclick = () =>
+      (window.location.href = `../../pages/coin.html?coin=${asset.id}`);
+  });
+  cryptoList.appendChild(table);
+
+  sparklineData.forEach(({ id, sparkline, color }) => {
+    const ctx = document.getElementById(`chart-${id}`).getContext("2d");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: sparkline.map((_, index) => index),
+        datasets: [
+          {
+            data: sparkline,
+            borderColor: color,
+            fill: false,
+            pointRadius: 0,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        scales: {
+          x: {
+            display: false,
+          },
+          y: {
+            display: false,
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            enabled: false,
+          },
+        },
+      },
+    });
+  });
+}
+
+function displayExchanges(data) {
+  const exchangeList = document.getElementById("exchange-list");
+  exchangeList.innerHTML = "";
+  const table = createTable(
+    [
+      "Rank",
+      "Exchange",
+      "Trust Score",
+      "24h Trade",
+      "24h Trade (Normal)",
+      "Country",
+      "Website",
+      "Year",
+    ],
+    1
+  );
+
+  data = data.slice(0, 20);
+
+  data.forEach((exchange) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td class="rank">${exchange.trust_score_rank}</td>
+          <td class="name-column table-fixed-column"><img src="${
+            exchange.image
+          }" alt="${exchange.name}"> ${exchange.name}</td>
+          <td>${exchange.trust_score}</td>
+          <td>$${exchange.trade_volume_24h_btc.toLocaleString(undefined, {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+          })} BTC</td>
+          <td>$${exchange.trade_volume_24h_btc_normalized.toLocaleString(
+            undefined,
+            { minimumFractionDigits: 3, maximumFractionDigits: 3 }
+          )} BTC</td>
+          <td class="name-column">${exchange.country || "N/A"}</td>
+          <td class="name-column">${exchange.url}</td>
+          <td>${exchange.year_established || "N/A"}</td>
+      `;
+    table.appendChild(row);
+  });
+  exchangeList.appendChild(table);
+}
+
+function displayCategories(data) {
+  const catagoriesList = document.getElementById("category-list");
+  catagoriesList.innerHTML = "";
+  const table = createTable(
+    ["Top Coins", "Category", "Market Cap", "24h Market Cap", "24h Volume"],
+    1
+  );
+
+  data = data.slice(0, 20);
+
+  data.forEach((category) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+          <td>${category.top_3_coins
+            .map((coin) => `<img src="${coin}" alt="coin">`)
+            .join("")}</td>
+          <td class="name-column table-fixed-column">${category.name}</td>
+          <td>$${
+            category.market_cap
+              ? category.market_cap.toLocaleString(undefined, {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })
+              : "N/A"
+          }</td>
+          <td class="${
+            category.market_cap_change_24h >= 0 ? "green" : "red"
+          }">${
+      category.market_cap_change_24h
+        ? category.market_cap_change_24h.toFixed(3)
+        : "0"
+    }%</td>
+          <td>$${
+            category.volume_24h
+              ? category.volume_24h.toLocaleString(undefined, {
+                  minimumFractionDigits: 3,
+                  maximumFractionDigits: 3,
+                })
+              : "N/A"
+          }</td>
+      `;
+    table.appendChild(row);
+  });
+  catagoriesList.appendChild(table);
+}
+
+function displayCompanies(data) {
+  const companyList = document.getElementById("company-list");
+  companyList.innerHTML = "";
+  const table = createTable([
+    "Company",
+    "Total BTC",
+    "Entry Value",
+    "Total Current Value",
+    "Total %",
+  ]);
+
+  data.companies.forEach((company) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+         <td class="name-column table-fixed-column">${company.name}</td>
+          <td>${company.total_holdings}</td>
+          <td>${company.total_entry_value_usd}</td>
+          <td>${company.total_current_value_usd}</td>
+          <td class="${
+            company.percentage_of_total_supply >= 0 ? "green" : "red"
+          }">${company.percentage_of_total_supply}%</td>
+      `;
+    table.appendChild(row);
+  });
+  companyList.appendChild(table);
+}
