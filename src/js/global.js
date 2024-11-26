@@ -7,6 +7,10 @@ const dominance = document.getElementById("dominance");
 const scrollTopBtn = document.getElementById("scrollTop");
 const themeToggle = document.getElementById("theme-toggle");
 const savedTheme = localStorage.getItem("theme");
+const form = document.getElementById("searchForm");
+const openMenuBtn = document.getElementById("openMenu");
+const overlay = document.querySelector(".overlay");
+const closeMenuBtn = document.getElementById("closeMenu");
 const body = document.body;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -40,7 +44,16 @@ document.addEventListener("DOMContentLoaded", function () {
       themeToggle.classList.add("ri-moon-line");
     }
   }
-  
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const query = document.getElementById("searchInput").value.trim();
+    if (!query) return;
+
+    window.location.href = `../pages/search.html?query=${query}`;
+  });
+
   fetchGlobal();
 });
 
