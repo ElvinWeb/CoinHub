@@ -156,7 +156,7 @@ function displayTrendCoins(coins) {
           }">${coinData.data.price_change_percentage_24h.usd.toFixed(2)}%</td>
       `;
     row.onclick = () =>
-      (window.location.href = `../../pages/coin.html?coin=${coinData.id}`);
+      (window.location.href = `../pages/coin.html?coin=${coinData.id}`);
     table.appendChild(row);
   });
   coinsList.appendChild(table);
@@ -242,7 +242,7 @@ function displayAssets(data) {
           : "red",
     });
     row.onclick = () =>
-      (window.location.href = `../../pages/coin.html?coin=${asset.id}`);
+      (window.location.href = `../pages/coin.html?coin=${asset.id}`);
   });
   cryptoList.appendChild(table);
 

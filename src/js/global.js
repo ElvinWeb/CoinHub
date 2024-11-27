@@ -54,6 +54,20 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = `../pages/search.html?query=${query}`;
   });
 
+  openMenuBtn.addEventListener("click", () => {
+    overlay.classList.add("show");
+  });
+
+  closeMenuBtn.addEventListener("click", () => {
+    overlay.classList.remove("show");
+  });
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove("show");
+    }
+  });
+
   fetchGlobal();
 });
 
