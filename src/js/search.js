@@ -1,5 +1,10 @@
-const exchangesList = document.getElementById("exchanges-list");
+import { BASE_API_URL } from "./config.js";
+import { createTable, toggleSpinner } from "./helpers.js";
+
 const params = new URLSearchParams(window.location.search);
+const exchangesList = document.getElementById("exchanges-list");
+const searchHeading = document.getElementById("searchHeading");
+const searchContainer = document.querySelector(".search-container");
 const coinsList = document.getElementById("coins-list");
 const nftsList = document.getElementById("nfts-list");
 const query = params.get("query");
@@ -8,22 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
   if (query) {
     fetchSearchResult(query, [coinsList, exchangesList, nftsList]);
   } else {
-    const searchHeading = document.getElementById("searchHeading");
-    const searchContainer = document.querySelector(".search-container");
     searchContainer.innerHTML = `<p style="color: red; text-align: center; margin-bottom: 8px">Nothing To Show...</p>`;
     searchHeading.innerText = "Please search something...";
   }
 });
 
 function fetchSearchResult(param, idsToToggle) {
-  const searchHeading = document.getElementById("searchHeading");
-
   idsToToggle.forEach((id) => {
     const errorElement = document.getElementById(`${id}-error`);
 
     if (errorElement) {
       errorElement.style.display = "none";
     }
+
     toggleSpinner(id, `${id}-spinner`, true);
   });
 
@@ -33,10 +35,10 @@ function fetchSearchResult(param, idsToToggle) {
 
   searchHeading.innerText = `Search results for "${param}"`;
 
-  const url = `https://api.coingecko.com/api/v3/search?query=${param}`;
+  const apiUrl = `${BASE_API_URL}search?query=${param}`;
   const options = { method: "GET", headers: { accept: "application/json" } };
 
-  fetch(url, options)
+  fetch(apiUrl, options)
     .then((response) => {
       if (!response.ok) {
         throw new Error("Network response was not ok " + response.statusText);
@@ -103,16 +105,17 @@ function coinsResult(coins) {
   coins.forEach((coin) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-           <td>${coin.market_cap_rank}</td>
-            <td class="name-column"><img src="${coin.thumb}" alt="${
-      coin.name
-    }"> ${coin.name} <span>(${coin.symbol.toUpperCase()})</span></td>
+          <td>${coin.market_cap_rank}</td>
+          <td class="name-column">
+            <img src="${coin.thumb}" alt="${coin.name}">${coin.name} 
+            <span>(${coin.symbol.toUpperCase()})</span>
+          </td>
         `;
     table.appendChild(row);
-    row.onclick = () => {
-      window.location.href = `../pages/coin.html?coin=${coin.id}`;
-    };
+    row.onclick = () =>
+      (window.location.href = `../pages/coin.html?coin=${coin.id}`);
   });
+
   coinsList.appendChild(table);
 }
 
@@ -121,14 +124,17 @@ function exchangesResult(exchanges) {
 
   const table = createTable(["Exchange", "Market"]);
 
-  exchanges.forEach((ex) => {
+  exchanges.forEach((exc) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-           <td class="name-column"><img src="${ex.thumb}" alt="${ex.name}"> ${ex.name}</td>
-            <td>${ex.market_type}</td>
+          <td class="name-column">
+            <img src="${exc.thumb}" alt="${exc.name}"> ${exc.name}
+          </td>
+          <td>${exc.market_type}</td>
         `;
     table.appendChild(row);
   });
+
   exchangesList.appendChild(table);
 }
 
@@ -137,13 +143,16 @@ function nftsResult(nfts) {
 
   const table = createTable(["NFT", "Symbol"]);
 
-  nfts.forEach((nf) => {
+  nfts.forEach((nft) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-           <td class="name-column"><img src="${nf.thumb}" alt="${nf.name}"> ${nf.name}</td>
-            <td class="name-column">${nf.symbol}</td>
+          <td class="name-column">
+            <img src="${nft.thumb}" alt="${nft.name}"> ${nft.name}
+          </td>
+          <td class="name-column">${nft.symbol}</td>
         `;
     table.appendChild(row);
   });
+
   nftsList.appendChild(table);
 }

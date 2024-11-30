@@ -1,3 +1,23 @@
+import { createTable, toggleSpinner } from "./helpers.js";
+import { getLocalStorageData } from "./global.js";
+import {
+  CATEGORIES_STORAGE_KEY,
+  COMPANIES_STORAGE_KEY,
+  EXCHANGE_STORAGE_KEY,
+  CRYPTO_STORAGE_KEY,
+  TRADING_STORAGE_KEY,
+  BASE_API_URL,
+} from "./config.js";
+
+const tabContent = document.querySelectorAll(".tab-content");
+const tabButtons = document.querySelectorAll(".tab-button");
+const coinsList = document.getElementById("coins-list");
+const nftsList = document.getElementById("nfts-list");
+const cryptoList = document.getElementById("asset-list");
+const exchangeList = document.getElementById("exchange-list");
+const catagoriesList = document.getElementById("category-list");
+const companyList = document.getElementById("company-list");
+
 const tabDataLoaded = {
   tab1: false,
   tab2: false,
@@ -5,8 +25,22 @@ const tabDataLoaded = {
   tab4: false,
 };
 
+const tabsName = {
+  tab1: "tab1",
+  tab2: "tab2",
+  tab3: "tab3",
+  tab4: "tab4",
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".tab-button").click();
+
+  tabButtons.forEach((tabBtn, index) => {
+    tabBtn.addEventListener("click", function (e) {
+      openTab(e, tabsName[`tab${index + 1}`]);
+    });
+  });
+
   fetchData();
 });
 
@@ -15,7 +49,7 @@ async function fetchAndDisplay(
   idsToToggle,
   displayFunction,
   tabName = null,
-  localKey
+  storageKey
 ) {
   idsToToggle.forEach((id) => {
     const errorElement = document.getElementById(`${id}-error`);
@@ -26,8 +60,7 @@ async function fetchAndDisplay(
     toggleSpinner(id, `${id}-spinner`, true);
   });
 
-  const localStorageKey = localKey;
-  const localData = getLocalStorageData(localStorageKey);
+  const localData = getLocalStorageData(storageKey);
 
   if (localData) {
     idsToToggle.forEach((id) => toggleSpinner(id, `${id}-spinner`, false));
@@ -42,7 +75,7 @@ async function fetchAndDisplay(
       const data = await response.json();
       idsToToggle.forEach((id) => toggleSpinner(id, `${id}-spinner`, false));
       displayFunction(data);
-      setLocalStorageData(localStorageKey, data);
+      setLocalStorageData(storageKey, data);
       if (tabName) {
         tabDataLoaded[tabName] = true;
       }
@@ -58,73 +91,21 @@ async function fetchAndDisplay(
   }
 }
 
-function openTab(event, tabName) {
-  const tabContent = document.querySelectorAll(".tab-content");
-  const tabButtons = document.querySelectorAll(".tab-button");
-
-  tabContent.forEach((content) => (content.style.display = "none"));
-  tabButtons.forEach((button) => button.classList.remove("active"));
-
-  document.getElementById(tabName).style.display = "block";
-  event.currentTarget.classList.add("active");
-
-  if (!tabDataLoaded[tabName]) {
-    switch (tabName) {
-      case "tab1":
-        fetchAndDisplay(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true",
-          ["asset-list"],
-          displayAssets,
-          tabName,
-          "Crypto_Data"
-        );
-        break;
-      case "tab2":
-        fetchAndDisplay(
-          "https://api.coingecko.com/api/v3/exchanges",
-          ["exchange-list"],
-          displayExchanges,
-          tabName,
-          "Exchanges_Data"
-        );
-        break;
-      case "tab3":
-        fetchAndDisplay(
-          "https://api.coingecko.com/api/v3/coins/categories",
-          ["category-list"],
-          displayCategories,
-          tabName,
-          "Categories_Data"
-        );
-        break;
-      case "tab4":
-        fetchAndDisplay(
-          "https://api.coingecko.com/api/v3/companies/public_treasury/bitcoin",
-          ["company-list"],
-          displayCompanies,
-          tabName,
-          "Companies_Data"
-        );
-        break;
-    }
-  }
-}
-
 async function fetchData() {
   await Promise.all([
     fetchAndDisplay(
-      "https://api.coingecko.com/api/v3/search/trending",
+      `${BASE_API_URL}search/trending`,
       ["coins-list", "nfts-list"],
       displayTrends,
       null,
-      "Trending_data"
+      TRADING_STORAGE_KEY
     ),
     fetchAndDisplay(
-      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true",
+      `${BASE_API_URL}coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true`,
       ["asset-list"],
       displayAssets,
       null,
-      "Crypto_Data"
+      CRYPTO_STORAGE_KEY
     ),
   ]);
 }
@@ -135,7 +116,7 @@ function displayTrends(data) {
 }
 
 function displayTrendCoins(coins) {
-  const coinsList = document.getElementById("coins-list");
+  
   coinsList.innerHTML = "";
   const table = createTable(["Coin", "Price", "Market Cap", "Volume", "24h%"]);
 
@@ -159,11 +140,12 @@ function displayTrendCoins(coins) {
       (window.location.href = `../pages/coin.html?coin=${coinData.id}`);
     table.appendChild(row);
   });
+
   coinsList.appendChild(table);
 }
 
 function displayTrendNfts(nfts) {
-  const nftsList = document.getElementById("nfts-list");
+  
   nftsList.innerHTML = "";
   const table = createTable(["NFT", "Market", "Price", "24h Vol", "24h%"]);
 
@@ -188,11 +170,12 @@ function displayTrendNfts(nfts) {
       `;
     table.appendChild(row);
   });
+
   nftsList.appendChild(table);
 }
 
 function displayAssets(data) {
-  const cryptoList = document.getElementById("asset-list");
+  
   cryptoList.innerHTML = "";
   const table = createTable(
     [
@@ -244,6 +227,7 @@ function displayAssets(data) {
     row.onclick = () =>
       (window.location.href = `../pages/coin.html?coin=${asset.id}`);
   });
+
   cryptoList.appendChild(table);
 
   sparklineData.forEach(({ id, sparkline, color }) => {
@@ -286,7 +270,7 @@ function displayAssets(data) {
 }
 
 function displayExchanges(data) {
-  const exchangeList = document.getElementById("exchange-list");
+  
   exchangeList.innerHTML = "";
   const table = createTable(
     [
@@ -326,11 +310,12 @@ function displayExchanges(data) {
       `;
     table.appendChild(row);
   });
+
   exchangeList.appendChild(table);
 }
 
 function displayCategories(data) {
-  const catagoriesList = document.getElementById("category-list");
+  
   catagoriesList.innerHTML = "";
   const table = createTable(
     ["Top Coins", "Category", "Market Cap", "24h Market Cap", "24h Volume"],
@@ -372,11 +357,12 @@ function displayCategories(data) {
       `;
     table.appendChild(row);
   });
+
   catagoriesList.appendChild(table);
 }
 
 function displayCompanies(data) {
-  const companyList = document.getElementById("company-list");
+  
   companyList.innerHTML = "";
   const table = createTable([
     "Company",
@@ -399,5 +385,55 @@ function displayCompanies(data) {
       `;
     table.appendChild(row);
   });
+
   companyList.appendChild(table);
+}
+
+function openTab(event, tabName) {
+  tabContent.forEach((content) => (content.style.display = "none"));
+  tabButtons.forEach((button) => button.classList.remove("active"));
+
+  document.getElementById(tabName).style.display = "block";
+  event.currentTarget.classList.add("active");
+
+  if (!tabDataLoaded[tabName]) {
+    switch (tabName) {
+      case "tab1":
+        fetchAndDisplay(
+          `${BASE_API_URL}coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true`,
+          ["asset-list"],
+          displayAssets,
+          tabName,
+          CRYPTO_STORAGE_KEY
+        );
+        break;
+      case "tab2":
+        fetchAndDisplay(
+          `${BASE_API_URL}exchanges`,
+          ["exchange-list"],
+          displayExchanges,
+          tabName,
+          EXCHANGE_STORAGE_KEY
+        );
+        break;
+      case "tab3":
+        fetchAndDisplay(
+          `${BASE_API_URL}coins/categories`,
+          ["category-list"],
+          displayCategories,
+          tabName,
+          CATEGORIES_STORAGE_KEY
+        );
+        break;
+      case "tab4":
+        fetchAndDisplay(
+          `${BASE_API_URL}companies/public_treasury/bitcoin`,
+          ["company-list"],
+          displayCompanies,
+          tabName,
+          COMPANIES_STORAGE_KEY
+        );
+        break;
+    }
+  }
 }

@@ -1,3 +1,6 @@
+import { BASE_API_URL, GLOBAL_STORAGE_KEY } from "./config.js";
+// import { initializeWidget } from "./coin.js";
+
 const coinsCount = document.getElementById("coins-count");
 const exchangesCount = document.getElementById("exchanges-count");
 const marketCap = document.getElementById("marketCap");
@@ -30,9 +33,9 @@ document.addEventListener("DOMContentLoaded", function () {
       updateIcon("light-theme");
     }
 
-    if (typeof initializeWidget === "function") {
-      initializeWidget();
-    }
+    // if (typeof initializeWidget === "function") {
+    //   initializeWidget();
+    // }
   });
 
   function updateIcon(currentTheme) {
@@ -71,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
   fetchGlobal();
 });
 
-function getLocalStorageData(key) {
+export function getLocalStorageData(key) {
   const storedData = localStorage.getItem(key);
   if (!storedData) return null;
 
@@ -95,20 +98,19 @@ function setLocalStorageData(key, data) {
 }
 
 function fetchGlobal() {
-  const localStorageKey = "Global_Data";
-  const localData = getLocalStorageData(localStorageKey);
+  const localData = getLocalStorageData(GLOBAL_STORAGE_KEY);
 
   if (localData) {
     displayGlobalData(localData);
   } else {
     const options = { method: "GET", headers: { accept: "application/json" } };
 
-    fetch("https://api.coingecko.com/api/v3/global", options)
+    fetch(`${BASE_API_URL}global`, options)
       .then((response) => response.json())
       .then((data) => {
         const globalData = data.data;
         displayGlobalData(data);
-        setLocalStorageData(localStorageKey, globalData);
+        setLocalStorageData(GLOBAL_STORAGE_KEY, globalData);
       })
       .catch((error) => {
         console.log(error);
@@ -148,57 +150,58 @@ function displayGlobalData(globalData) {
   dominance.textContent = `BTC ${btcDominance} - ETH ${ethDominance}`;
 }
 
-function toggleSpinner(listId, spinnerId, show) {
-  const listElement = document.getElementById(listId);
-  const spinnerElement = document.getElementById(spinnerId);
+// export function toggleSpinner(listId, spinnerId, show) {
+//   const listElement = document.getElementById(listId);
+//   const spinnerElement = document.getElementById(spinnerId);
 
-  if (spinnerElement) {
-    spinnerElement.style.display = show ? "block" : "none";
-  }
-  if (listElement) {
-    listElement.style.display = show ? "none" : "block";
-  }
-}
+//   if (spinnerElement) {
+//     spinnerElement.style.display = show ? "block" : "none";
+//   }
+//   if (listElement) {
+//     listElement.style.display = show ? "none" : "block";
+//   }
+// }
 
-function createTable(headers, fixedIndex = 0) {
-  const table = document.createElement("table");
-  const thead = document.createElement("thead");
-  table.appendChild(thead);
+// export function createTable(headers, fixedIndex = 0) {
+//   const table = document.createElement("table");
+//   const thead = document.createElement("thead");
+//   table.appendChild(thead);
+//   const headerRow = document.createElement("tr");
 
-  const headerRow = document.createElement("tr");
-  headers.forEach((header, index) => {
-    const th = document.createElement("th");
-    th.textContent = header;
-    if (index === fixedIndex) {
-      th.classList.add("table-fixed-column");
-    }
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
+//   headers.forEach((header, index) => {
+//     const th = document.createElement("th");
+//     th.textContent = header;
+//     if (index === fixedIndex) {
+//       th.classList.add("table-fixed-column");
+//     }
+//     headerRow.appendChild(th);
+//   });
 
-  return table;
-}
+//   thead.appendChild(headerRow);
 
-function createWidget(containerId, widgetConfig, widgetSrc) {
-  const container = document.getElementById(containerId);
+//   return table;
+// }
 
-  container.innerHTML = "";
+// export function createWidget(containerId, widgetConfig, widgetSrc) {
+//   const container = document.getElementById(containerId);
 
-  const widgetDiv = document.createElement("div");
-  widgetDiv.classList.add("tradingview-widget-container__widget");
-  container.appendChild(widgetDiv);
+//   container.innerHTML = "";
 
-  const script = document.createElement("script");
-  script.type = "text/javascript";
-  script.src = widgetSrc;
-  script.async = true;
-  script.innerHTML = JSON.stringify(widgetConfig);
-  container.appendChild(script);
+//   const widgetDiv = document.createElement("div");
+//   widgetDiv.classList.add("tradingview-widget-container__widget");
+//   container.appendChild(widgetDiv);
 
-  setTimeout(() => {
-    const copyright = document.querySelector(".tradingview-widget-copyright");
-    if (copyright) {
-      copyright.classList.remove("hidden");
-    }
-  }, 5000);
-}
+//   const script = document.createElement("script");
+//   script.type = "text/javascript";
+//   script.src = widgetSrc;
+//   script.async = true;
+//   script.innerHTML = JSON.stringify(widgetConfig);
+//   container.appendChild(script);
+
+//   setTimeout(() => {
+//     const copyright = document.querySelector(".tradingview-widget-copyright");
+//     if (copyright) {
+//       copyright.classList.remove("hidden");
+//     }
+//   }, 5000);
+// }

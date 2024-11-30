@@ -1,3 +1,5 @@
+import { createWidget } from "./helpers.js";
+
 function getThemeConfig() {
   const root = getComputedStyle(document.documentElement);
   const isDarkTheme =

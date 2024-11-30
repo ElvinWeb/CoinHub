@@ -1,3 +1,6 @@
+import { createWidget } from "./helpers.js";
+import { BASE_API_URL } from "./config.js";
+
 const wdigetConfig1 = {
   symbol: "BINANCE:BTCUSDT",
   width: "100%",
@@ -38,7 +41,11 @@ const widgetConfig2 = {
   dateRanges: ["1d|15", "1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"],
   dateFormat: "yyyy-MM-dd",
 };
+const rightSec = document.querySelector(".coin-container .right-section");
+const coinInfoError = document.getElementById("coin-info-error");
 const params = new URLSearchParams(window.location.search);
+const coinDesc = document.getElementById("coin-desc-p");
+const coinInfo = document.querySelector(".coin-info");
 const query = params.get("coin");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -50,16 +57,14 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function fetchCoinInfo(query) {
-  const coinInfoError = document.getElementById("coin-info-error");
   coinInfoError.style.display = "none";
-  const apiUrl = `https://api.coingecko.com/api/v3/coins/${query}`;
+  const apiUrl = `${BASE_API_URL}coins/${query}`;
 
   try {
     const response = await fetch(apiUrl);
     if (!response.ok) throw new Error("API limit reached.");
     const data = await response.json();
     wdigetConfig1.symbol = `MEXC:${data.symbol.toUpperCase()}USDT`;
-
     widgetConfig2.symbols = [[`MEXC:${data.symbol.toUpperCase()}USDT|1D`]];
 
     initializeWidget();
@@ -70,7 +75,7 @@ async function fetchCoinInfo(query) {
   }
 }
 
-function initializeWidget() {
+export function initializeWidget() {
   const themeConfig = getThemeConfig();
   wdigetConfig1.colorTheme = themeConfig.theme;
   widgetConfig2.colorTheme = themeConfig.theme;
@@ -90,10 +95,7 @@ function initializeWidget() {
 }
 
 function displayCoinInfo(coin) {
-  const coinInfo = document.querySelector(".coin-info");
-  const rightSec = document.querySelector(".coin-container .right-section");
-  const coinDesc = document.getElementById("coin-desc-p");
-
+ 
   coinInfo.innerHTML = `
         <div class="logo">
                     <img src="${coin.image.thumb}" alt="${coin.name}">

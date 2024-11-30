@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CoinHub | Empowering your crypto journey</title>
-    <link rel="icon" type="image/png" href="./src/images/bitcoin.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css">
+    <link rel="icon" type="image/png" href="./src/images/bitcoin.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.min.css"
+    />
     <link rel="stylesheet" href="./src/stylesheet/main.css" />
     <link rel="stylesheet" href="./src/stylesheet/responsive.css" />
   </head>
@@ -105,7 +108,7 @@
       </div>
 
       <div class="tab-container">
-        <div class="tabs">
+        <!-- <div class="tabs">
           <button class="tab-button active" onclick="openTab(event, 'tab1')">
             <i class="ri-apps-2-line"></i> Assets
           </button>
@@ -116,6 +119,20 @@
             <i class="ri-exchange-2-line"></i> Categories
           </button>
           <button class="tab-button" onclick="openTab(event, 'tab4')">
+            <i class="ri-btc-line"></i> Holders
+          </button>
+        </div> -->
+        <div class="tabs">
+          <button class="tab-button active">
+            <i class="ri-apps-2-line"></i> Assets
+          </button>
+          <button class="tab-button">
+            <i class="ri-arrow-left-right-line"></i> Exchanges
+          </button>
+          <button class="tab-button">
+            <i class="ri-exchange-2-line"></i> Categories
+          </button>
+          <button class="tab-button">
             <i class="ri-btc-line"></i> Holders
           </button>
         </div>
@@ -171,7 +188,7 @@
     </button>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="./src/js/app.js"></script>
-    <script src="./src/js/global.js"></script>
+    <script src="./src/js/app.js" type="module"></script>
+    <script src="./src/js/global.js" type="module"></script>
   </body>
 </html>
