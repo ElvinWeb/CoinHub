@@ -1,5 +1,6 @@
 import { BASE_API_URL, GLOBAL_STORAGE_KEY } from "./config.js";
-// import { initializeWidget } from "./coin.js";
+import { initializeWidget } from "./chart.js";
+import { getLocalStorageData, setLocalStorageData } from "./helpers.js";
 
 const coinsCount = document.getElementById("coins-count");
 const exchangesCount = document.getElementById("exchanges-count");
@@ -14,6 +15,8 @@ const form = document.getElementById("searchForm");
 const openMenuBtn = document.getElementById("openMenu");
 const overlay = document.querySelector(".overlay");
 const closeMenuBtn = document.getElementById("closeMenu");
+const activePage = window.location.pathname;
+const navLinks = document.querySelectorAll(".nav-links a");
 const body = document.body;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -33,8 +36,12 @@ document.addEventListener("DOMContentLoaded", function () {
       updateIcon("light-theme");
     }
 
-    // if (typeof initializeWidget === "function") {
-    //   initializeWidget();
+    if (activePage === "/src/pages/charts.html") {
+      initializeWidget();
+    }
+
+    // if (activePage === "/src/pages/coin.html") {
+    //   initializeDetailsWidget();
     // }
   });
 
@@ -72,30 +79,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   fetchGlobal();
+  scrollFunction();
+  initializeWidget();
 });
 
-export function getLocalStorageData(key) {
-  const storedData = localStorage.getItem(key);
-  if (!storedData) return null;
-
-  const parsedData = JSON.parse(storedData);
-  const currentTime = Date.now();
-
-  if (currentTime - parsedData.timestamp > 300000) {
-    localStorage.removeItem(key);
-    return null;
-  }
-
-  return parsedData.data;
-}
-
-function setLocalStorageData(key, data) {
-  const storedData = {
-    timestamp: Date.now(),
-    data: data,
-  };
-  localStorage.setItem(key, JSON.stringify(storedData));
-}
+scrollTopBtn.addEventListener("click", scrollToTop);
 
 function fetchGlobal() {
   const localData = getLocalStorageData(GLOBAL_STORAGE_KEY);
@@ -150,58 +138,23 @@ function displayGlobalData(globalData) {
   dominance.textContent = `BTC ${btcDominance} - ETH ${ethDominance}`;
 }
 
-// export function toggleSpinner(listId, spinnerId, show) {
-//   const listElement = document.getElementById(listId);
-//   const spinnerElement = document.getElementById(spinnerId);
+function scrollFunction() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    scrollTopBtn.style.display = "flex";
+  } else {
+    scrollTopBtn.style.display = "none";
+  }
+}
 
-//   if (spinnerElement) {
-//     spinnerElement.style.display = show ? "block" : "none";
-//   }
-//   if (listElement) {
-//     listElement.style.display = show ? "none" : "block";
-//   }
-// }
+function scrollToTop() {
+  // For Safari
+  document.body.scrollTop = 0;
+  // Chrome, Firefox, IE and Opera
+  document.documentElement.scrollTop = 0;
+}
 
-// export function createTable(headers, fixedIndex = 0) {
-//   const table = document.createElement("table");
-//   const thead = document.createElement("thead");
-//   table.appendChild(thead);
-//   const headerRow = document.createElement("tr");
-
-//   headers.forEach((header, index) => {
-//     const th = document.createElement("th");
-//     th.textContent = header;
-//     if (index === fixedIndex) {
-//       th.classList.add("table-fixed-column");
-//     }
-//     headerRow.appendChild(th);
-//   });
-
-//   thead.appendChild(headerRow);
-
-//   return table;
-// }
-
-// export function createWidget(containerId, widgetConfig, widgetSrc) {
-//   const container = document.getElementById(containerId);
-
-//   container.innerHTML = "";
-
-//   const widgetDiv = document.createElement("div");
-//   widgetDiv.classList.add("tradingview-widget-container__widget");
-//   container.appendChild(widgetDiv);
-
-//   const script = document.createElement("script");
-//   script.type = "text/javascript";
-//   script.src = widgetSrc;
-//   script.async = true;
-//   script.innerHTML = JSON.stringify(widgetConfig);
-//   container.appendChild(script);
-
-//   setTimeout(() => {
-//     const copyright = document.querySelector(".tradingview-widget-copyright");
-//     if (copyright) {
-//       copyright.classList.remove("hidden");
-//     }
-//   }, 5000);
-// }
+navLinks.forEach((link) => {
+  if (link.href.includes(`${activePage}`)) {
+    link.classList.add("active");
+  }
+});

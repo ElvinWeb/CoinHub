@@ -1,5 +1,5 @@
 import { createTable, toggleSpinner } from "./helpers.js";
-import { getLocalStorageData } from "./global.js";
+import { getLocalStorageData, setLocalStorageData } from "./helpers.js";
 import {
   CATEGORIES_STORAGE_KEY,
   COMPANIES_STORAGE_KEY,
@@ -7,6 +7,8 @@ import {
   CRYPTO_STORAGE_KEY,
   TRADING_STORAGE_KEY,
   BASE_API_URL,
+  TAB_DATA_LOADED,
+  TAB_NAMES,
 } from "./config.js";
 
 const tabContent = document.querySelectorAll(".tab-content");
@@ -18,26 +20,12 @@ const exchangeList = document.getElementById("exchange-list");
 const catagoriesList = document.getElementById("category-list");
 const companyList = document.getElementById("company-list");
 
-const tabDataLoaded = {
-  tab1: false,
-  tab2: false,
-  tab3: false,
-  tab4: false,
-};
-
-const tabsName = {
-  tab1: "tab1",
-  tab2: "tab2",
-  tab3: "tab3",
-  tab4: "tab4",
-};
-
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".tab-button").click();
 
   tabButtons.forEach((tabBtn, index) => {
     tabBtn.addEventListener("click", function (e) {
-      openTab(e, tabsName[`tab${index + 1}`]);
+      openTab(e, TAB_NAMES[`tab${index + 1}`]);
     });
   });
 
@@ -66,7 +54,7 @@ async function fetchAndDisplay(
     idsToToggle.forEach((id) => toggleSpinner(id, `${id}-spinner`, false));
     displayFunction(localData);
     if (tabName) {
-      tabDataLoaded[tabName] = true;
+      TAB_DATA_LOADED[tabName] = true;
     }
   } else {
     try {
@@ -77,7 +65,7 @@ async function fetchAndDisplay(
       displayFunction(data);
       setLocalStorageData(storageKey, data);
       if (tabName) {
-        tabDataLoaded[tabName] = true;
+        TAB_DATA_LOADED[tabName] = true;
       }
     } catch (error) {
       idsToToggle.forEach((id) => {
@@ -85,7 +73,7 @@ async function fetchAndDisplay(
         document.getElementById(`${id}-error`).style.display = "block";
       });
       if (tabName) {
-        tabDataLoaded[tabName] = false;
+        TAB_DATA_LOADED[tabName] = false;
       }
     }
   }
@@ -116,8 +104,8 @@ function displayTrends(data) {
 }
 
 function displayTrendCoins(coins) {
-  
   coinsList.innerHTML = "";
+
   const table = createTable(["Coin", "Price", "Market Cap", "Volume", "24h%"]);
 
   coins.forEach((coin) => {
@@ -137,7 +125,7 @@ function displayTrendCoins(coins) {
           }">${coinData.data.price_change_percentage_24h.usd.toFixed(2)}%</td>
       `;
     row.onclick = () =>
-      (window.location.href = `../pages/coin.html?coin=${coinData.id}`);
+      (window.location.href = `/src/pages/coin.html?coin=${coinData.id}`);
     table.appendChild(row);
   });
 
@@ -145,8 +133,8 @@ function displayTrendCoins(coins) {
 }
 
 function displayTrendNfts(nfts) {
-  
   nftsList.innerHTML = "";
+
   const table = createTable(["NFT", "Market", "Price", "24h Vol", "24h%"]);
 
   nfts.forEach((nft) => {
@@ -175,8 +163,9 @@ function displayTrendNfts(nfts) {
 }
 
 function displayAssets(data) {
-  
+  const sparklineData = [];
   cryptoList.innerHTML = "";
+
   const table = createTable(
     [
       "Rank",
@@ -191,7 +180,6 @@ function displayAssets(data) {
     1
   );
 
-  const sparklineData = [];
   data.forEach((asset) => {
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -225,7 +213,7 @@ function displayAssets(data) {
           : "red",
     });
     row.onclick = () =>
-      (window.location.href = `../pages/coin.html?coin=${asset.id}`);
+      (window.location.href = `/src/pages/coin.html?coin=${asset.id}`);
   });
 
   cryptoList.appendChild(table);
@@ -270,8 +258,8 @@ function displayAssets(data) {
 }
 
 function displayExchanges(data) {
-  
   exchangeList.innerHTML = "";
+
   const table = createTable(
     [
       "Rank",
@@ -315,8 +303,8 @@ function displayExchanges(data) {
 }
 
 function displayCategories(data) {
-  
   catagoriesList.innerHTML = "";
+
   const table = createTable(
     ["Top Coins", "Category", "Market Cap", "24h Market Cap", "24h Volume"],
     1
@@ -362,8 +350,8 @@ function displayCategories(data) {
 }
 
 function displayCompanies(data) {
-  
   companyList.innerHTML = "";
+
   const table = createTable([
     "Company",
     "Total BTC",
@@ -396,7 +384,7 @@ function openTab(event, tabName) {
   document.getElementById(tabName).style.display = "block";
   event.currentTarget.classList.add("active");
 
-  if (!tabDataLoaded[tabName]) {
+  if (!TAB_DATA_LOADED[tabName]) {
     switch (tabName) {
       case "tab1":
         fetchAndDisplay(

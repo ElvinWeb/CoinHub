@@ -53,3 +53,26 @@ export function createWidget(containerId, widgetConfig, widgetSrc) {
     }
   }, 5000);
 }
+
+export function getLocalStorageData(key) {
+  const storedData = localStorage.getItem(key);
+  if (!storedData) return null;
+
+  const parsedData = JSON.parse(storedData);
+  const currentTime = Date.now();
+
+  if (currentTime - parsedData.timestamp > 300000) {
+    localStorage.removeItem(key);
+    return null;
+  }
+
+  return parsedData.data;
+}
+
+export function setLocalStorageData(key, data) {
+  const storedData = {
+    timestamp: Date.now(),
+    data: data,
+  };
+  localStorage.setItem(key, JSON.stringify(storedData));
+}

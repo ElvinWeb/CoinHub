@@ -1,4 +1,4 @@
-import { BASE_API_URL } from "./config.js";
+import { BASE_API_URL, SEARCH_QUERY } from "./config.js";
 import { createTable, toggleSpinner } from "./helpers.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -10,8 +10,8 @@ const nftsList = document.getElementById("nfts-list");
 const query = params.get("query");
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (query) {
-    fetchSearchResult(query, [coinsList, exchangesList, nftsList]);
+  if (SEARCH_QUERY) {
+    fetchSearchResult(SEARCH_QUERY, [coinsList, exchangesList, nftsList]);
   } else {
     searchContainer.innerHTML = `<p style="color: red; text-align: center; margin-bottom: 8px">Nothing To Show...</p>`;
     searchHeading.innerText = "Please search something...";
@@ -32,7 +32,6 @@ function fetchSearchResult(param, idsToToggle) {
   coinsList.innerHTML = "";
   exchangesList.innerHTML = "";
   nftsList.innerHTML = "";
-
   searchHeading.innerText = `Search results for "${param}"`;
 
   const apiUrl = `${BASE_API_URL}search?query=${param}`;
@@ -113,7 +112,7 @@ function coinsResult(coins) {
         `;
     table.appendChild(row);
     row.onclick = () =>
-      (window.location.href = `../pages/coin.html?coin=${coin.id}`);
+      (window.location.href = `/src/pages/coin.html?coin=${coin.id}`);
   });
 
   coinsList.appendChild(table);
