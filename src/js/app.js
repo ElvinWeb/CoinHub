@@ -1,14 +1,14 @@
-import { createTable, toggleSpinner } from "./helpers.js";
-import { getLocalStorageData, setLocalStorageData } from "./helpers.js";
+import { createTable, fetchData, toggleSpinner } from "./utils.js";
+import { getLocalStorageData, setLocalStorageData } from "./utils.js";
 import {
   CATEGORIES_STORAGE_KEY,
   COMPANIES_STORAGE_KEY,
   EXCHANGE_STORAGE_KEY,
   CRYPTO_STORAGE_KEY,
   TRADING_STORAGE_KEY,
-  BASE_API_URL,
   TAB_DATA_LOADED,
   TAB_NAMES,
+  ENDPOINT_URLS,
 } from "./config.js";
 
 const tabContent = document.querySelectorAll(".tab-content");
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  fetchData();
+  fetchTrendsData();
 });
 
 async function fetchAndDisplay(
@@ -45,6 +45,7 @@ async function fetchAndDisplay(
     if (errorElement) {
       errorElement.style.display = "none";
     }
+
     toggleSpinner(id, `${id}-spinner`, true);
   });
 
@@ -58,12 +59,12 @@ async function fetchAndDisplay(
     }
   } else {
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("API limit reached");
-      const data = await response.json();
+      const data = await fetchData(url);
+
       idsToToggle.forEach((id) => toggleSpinner(id, `${id}-spinner`, false));
       displayFunction(data);
       setLocalStorageData(storageKey, data);
+
       if (tabName) {
         TAB_DATA_LOADED[tabName] = true;
       }
@@ -79,17 +80,17 @@ async function fetchAndDisplay(
   }
 }
 
-async function fetchData() {
+async function fetchTrendsData() {
   await Promise.all([
     fetchAndDisplay(
-      `${BASE_API_URL}search/trending`,
+      ENDPOINT_URLS.trending,
       ["coins-list", "nfts-list"],
       displayTrends,
       null,
       TRADING_STORAGE_KEY
     ),
     fetchAndDisplay(
-      `${BASE_API_URL}coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true`,
+      ENDPOINT_URLS.assets,
       ["asset-list"],
       displayAssets,
       null,
@@ -388,7 +389,7 @@ function openTab(event, tabName) {
     switch (tabName) {
       case "tab1":
         fetchAndDisplay(
-          `${BASE_API_URL}coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true`,
+          ENDPOINT_URLS.assets,
           ["asset-list"],
           displayAssets,
           tabName,
@@ -397,7 +398,7 @@ function openTab(event, tabName) {
         break;
       case "tab2":
         fetchAndDisplay(
-          `${BASE_API_URL}exchanges`,
+          ENDPOINT_URLS.exchanges,
           ["exchange-list"],
           displayExchanges,
           tabName,
@@ -406,7 +407,7 @@ function openTab(event, tabName) {
         break;
       case "tab3":
         fetchAndDisplay(
-          `${BASE_API_URL}coins/categories`,
+          ENDPOINT_URLS.categories,
           ["category-list"],
           displayCategories,
           tabName,
@@ -415,7 +416,7 @@ function openTab(event, tabName) {
         break;
       case "tab4":
         fetchAndDisplay(
-          `${BASE_API_URL}companies/public_treasury/bitcoin`,
+          ENDPOINT_URLS.companies,
           ["company-list"],
           displayCompanies,
           tabName,

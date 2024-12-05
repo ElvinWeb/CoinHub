@@ -1,22 +1,12 @@
-import { BASE_API_URL, SEARCH_QUERY } from "./config.js";
-import { createTable, toggleSpinner } from "./helpers.js";
+import { ENDPOINT_URLS } from "../config.js";
+import { createTable, toggleSpinner } from "../utils.js";
 
-const params = new URLSearchParams(window.location.search);
+const query = new URLSearchParams(window.location.search).get("query");
 const exchangesList = document.getElementById("exchanges-list");
 const searchHeading = document.getElementById("searchHeading");
 const searchContainer = document.querySelector(".search-container");
 const coinsList = document.getElementById("coins-list");
 const nftsList = document.getElementById("nfts-list");
-const query = params.get("query");
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (SEARCH_QUERY) {
-    fetchSearchResult(SEARCH_QUERY, [coinsList, exchangesList, nftsList]);
-  } else {
-    searchContainer.innerHTML = `<p style="color: red; text-align: center; margin-bottom: 8px">Nothing To Show...</p>`;
-    searchHeading.innerText = "Please search something...";
-  }
-});
 
 function fetchSearchResult(param, idsToToggle) {
   idsToToggle.forEach((id) => {
@@ -34,10 +24,9 @@ function fetchSearchResult(param, idsToToggle) {
   nftsList.innerHTML = "";
   searchHeading.innerText = `Search results for "${param}"`;
 
-  const apiUrl = `${BASE_API_URL}search?query=${param}`;
   const options = { method: "GET", headers: { accept: "application/json" } };
 
-  fetch(apiUrl, options)
+  fetch(ENDPOINT_URLS.search(query), options)
     .then((response) => {
       if (!response.ok) {
         throw new Error("Network response was not ok " + response.statusText);
@@ -92,7 +81,6 @@ function fetchSearchResult(param, idsToToggle) {
         toggleSpinner(id, `${id}-spinner`, false);
         document.getElementById(`${id}-error`).style.display = "block";
       });
-      console.error("Error fetching data:", error);
     });
 }
 
@@ -155,3 +143,12 @@ function nftsResult(nfts) {
 
   nftsList.appendChild(table);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (query) {
+    fetchSearchResult(query, [coinsList, exchangesList, nftsList]);
+  } else {
+    searchContainer.innerHTML = `<p style="color: red; text-align: center; margin-bottom: 8px">Nothing To Show...</p>`;
+    searchHeading.innerText = "Please search something...";
+  }
+});

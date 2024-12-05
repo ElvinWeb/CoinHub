@@ -1,6 +1,10 @@
-import { BASE_API_URL, GLOBAL_STORAGE_KEY } from "./config.js";
-import { initializeWidget } from "./chart.js";
-import { getLocalStorageData, setLocalStorageData } from "./helpers.js";
+import { ENDPOINT_URLS, GLOBAL_STORAGE_KEY } from "./config.js";
+import { initializeWidget } from "./pages/chart.js";
+import {
+  fetchData,
+  getLocalStorageData,
+  setLocalStorageData,
+} from "./utils.js";
 
 const coinsCount = document.getElementById("coins-count");
 const exchangesCount = document.getElementById("exchanges-count");
@@ -18,6 +22,68 @@ const closeMenuBtn = document.getElementById("closeMenu");
 const activePage = window.location.pathname;
 const navLinks = document.querySelectorAll(".nav-links a");
 const body = document.body;
+
+async function fetchGlobal() {
+  const localData = getLocalStorageData(GLOBAL_STORAGE_KEY);
+
+  if (localData) {
+    displayGlobalData(localData);
+  } else {
+    const options = { method: "GET", headers: { accept: "application/json" } };
+    const data = await fetchData(ENDPOINT_URLS.global, options);
+    displayGlobalData(data);
+    setLocalStorageData(GLOBAL_STORAGE_KEY, data.data);
+  }
+}
+
+function displayGlobalData(globalData) {
+  coinsCount.textContent = globalData.active_cryptocurrencies || "-";
+  exchangesCount.textContent = globalData.markets || "-";
+
+  marketCap.textContent = globalData.total_market_cap?.usd
+    ? `$${(globalData.total_market_cap.usd / 1e12).toFixed(3)}T`
+    : "-";
+  const marketCapChange = globalData.market_cap_change_percentage_24h_usd;
+
+  if (marketCapChange !== undefined) {
+    const changeText = `${marketCapChange.toFixed(1)}%`;
+    marketCapChangeElement.innerHTML = `${changeText} <i class="${
+      marketCapChange < 0 ? "red" : "green"
+    } ri-arrow-${marketCapChange < 0 ? "down" : "up"}-s-fill"></i>`;
+    marketCapChangeElement.style.color = marketCapChange < 0 ? "red" : "green";
+  } else {
+    marketCapChangeElement.textContent = "-";
+  }
+
+  volume.textContent = globalData.total_volume?.usd
+    ? `$${(globalData.total_volume.usd / 1e9).toFixed(3)}B`
+    : "-";
+
+  const btcDominance = globalData.market_cap_percentage?.btc
+    ? `${globalData.market_cap_percentage.btc.toFixed(1)}%`
+    : "-";
+  const ethDominance = globalData.market_cap_percentage?.eth
+    ? `${globalData.market_cap_percentage.eth.toFixed(1)}%`
+    : "-";
+  dominance.textContent = `BTC ${btcDominance} - ETH ${ethDominance}`;
+}
+
+function scrollFunction() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    scrollTopBtn.style.display = "flex";
+  } else {
+    scrollTopBtn.style.display = "none";
+  }
+}
+
+function scrollToTop() {
+  // For Safari
+  document.body.scrollTop = 0;
+  // Chrome, Firefox, IE and Opera
+  document.documentElement.scrollTop = 0;
+}
+
+scrollTopBtn.addEventListener("click", scrollToTop);
 
 document.addEventListener("DOMContentLoaded", function () {
   if (savedTheme) {
@@ -78,83 +144,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  navLinks.forEach((link) => {
+    if (link.href.includes(`${activePage}`)) {
+      link.classList.add("active");
+    }
+  });
+
   fetchGlobal();
   scrollFunction();
   initializeWidget();
-});
-
-scrollTopBtn.addEventListener("click", scrollToTop);
-
-function fetchGlobal() {
-  const localData = getLocalStorageData(GLOBAL_STORAGE_KEY);
-
-  if (localData) {
-    displayGlobalData(localData);
-  } else {
-    const options = { method: "GET", headers: { accept: "application/json" } };
-
-    fetch(`${BASE_API_URL}global`, options)
-      .then((response) => response.json())
-      .then((data) => {
-        const globalData = data.data;
-        displayGlobalData(data);
-        setLocalStorageData(GLOBAL_STORAGE_KEY, globalData);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
-}
-
-function displayGlobalData(globalData) {
-  coinsCount.textContent = globalData.active_cryptocurrencies || "-";
-  exchangesCount.textContent = globalData.markets || "-";
-
-  marketCap.textContent = globalData.total_market_cap?.usd
-    ? `$${(globalData.total_market_cap.usd / 1e12).toFixed(3)}T`
-    : "-";
-  const marketCapChange = globalData.market_cap_change_percentage_24h_usd;
-
-  if (marketCapChange !== undefined) {
-    const changeText = `${marketCapChange.toFixed(1)}%`;
-    marketCapChangeElement.innerHTML = `${changeText} <i class="${
-      marketCapChange < 0 ? "red" : "green"
-    } ri-arrow-${marketCapChange < 0 ? "down" : "up"}-s-fill"></i>`;
-    marketCapChangeElement.style.color = marketCapChange < 0 ? "red" : "green";
-  } else {
-    marketCapChangeElement.textContent = "-";
-  }
-
-  volume.textContent = globalData.total_volume?.usd
-    ? `$${(globalData.total_volume.usd / 1e9).toFixed(3)}B`
-    : "-";
-
-  const btcDominance = globalData.market_cap_percentage?.btc
-    ? `${globalData.market_cap_percentage.btc.toFixed(1)}%`
-    : "-";
-  const ethDominance = globalData.market_cap_percentage?.eth
-    ? `${globalData.market_cap_percentage.eth.toFixed(1)}%`
-    : "-";
-  dominance.textContent = `BTC ${btcDominance} - ETH ${ethDominance}`;
-}
-
-function scrollFunction() {
-  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-    scrollTopBtn.style.display = "flex";
-  } else {
-    scrollTopBtn.style.display = "none";
-  }
-}
-
-function scrollToTop() {
-  // For Safari
-  document.body.scrollTop = 0;
-  // Chrome, Firefox, IE and Opera
-  document.documentElement.scrollTop = 0;
-}
-
-navLinks.forEach((link) => {
-  if (link.href.includes(`${activePage}`)) {
-    link.classList.add("active");
-  }
 });

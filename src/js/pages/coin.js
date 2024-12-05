@@ -1,41 +1,31 @@
-import { createWidget } from "./helpers.js";
 import {
-  BASE_API_URL,
+  ENDPOINT_URLS,
+  SINGLE_QUOTE_WIDGET_URL,
+  SYMBOL_OVERVIEW_WIDGET_URL,
   WIDGET_CONFIG_1,
   WIDGET_CONFIG_2,
-  SEARCH_QUERY,
-} from "./config.js";
+} from "../config.js";
+import { createWidget, fetchData, getCoinThemeConfig } from "../utils.js";
 
+const query = new URLSearchParams(window.location.search).get("coin");
 const rightSec = document.querySelector(".coin-container .right-section");
 const coinInfoError = document.getElementById("coin-info-error");
 const coinDesc = document.getElementById("coin-desc-p");
 const coinInfo = document.querySelector(".coin-info");
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (SEARCH_QUERY) {
-    fetchCoinInfo(SEARCH_QUERY);
-  } else {
-    window.location.href = "../../index.html";
-  }
-});
-
 export function initializeDetailsWidget() {
-  const themeConfig = getThemeConfig();
+  const { theme, backgroundColor, gridColor } = getCoinThemeConfig();
 
-  WIDGET_CONFIG_1.colorTheme = themeConfig.theme;
-  WIDGET_CONFIG_2.colorTheme = themeConfig.theme;
-  WIDGET_CONFIG_2.backgroundColor = themeConfig.backgroundColor;
-  WIDGET_CONFIG_2.gridLineColor = themeConfig.gridColor;
+  WIDGET_CONFIG_1.colorTheme = theme;
+  WIDGET_CONFIG_2.colorTheme = theme;
+  WIDGET_CONFIG_2.backgroundColor = backgroundColor;
+  WIDGET_CONFIG_2.gridLineColor = gridColor;
 
-  createWidget(
-    "ticker-widget",
-    WIDGET_CONFIG_1,
-    "https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js"
-  );
+  createWidget("ticker-widget", WIDGET_CONFIG_1, SINGLE_QUOTE_WIDGET_URL);
   createWidget(
     "mini-chart-widget",
     WIDGET_CONFIG_2,
-    "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js"
+    SYMBOL_OVERVIEW_WIDGET_URL
   );
 }
 
@@ -163,7 +153,7 @@ function displayCoinInfo(coin) {
                         }</p>
                     </div>
                 </div>
-    `;
+  `;
 
   rightSec.innerHTML = `
         <div class="status">
@@ -292,7 +282,7 @@ function displayCoinInfo(coin) {
                     </div>
                 </div>
             </div>
-    `;
+  `;
 
   coinDesc.innerHTML =
     coin.description.en ||
@@ -301,12 +291,10 @@ function displayCoinInfo(coin) {
 
 async function fetchCoinInfo(query) {
   coinInfoError.style.display = "none";
-  const apiUrl = `${BASE_API_URL}coins/${query}`;
 
   try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error("API limit reached.");
-    const data = await response.json();
+    const data = await fetchData(ENDPOINT_URLS.coinInfo(query));
+
     WIDGET_CONFIG_1.symbol = `MEXC:${data.symbol.toUpperCase()}USDT`;
     WIDGET_CONFIG_2.symbols = [[`MEXC:${data.symbol.toUpperCase()}USDT|1D`]];
 
@@ -314,24 +302,13 @@ async function fetchCoinInfo(query) {
     displayCoinInfo(data);
   } catch (error) {
     coinInfoError.style.display = "flex";
-    console.log(error);
   }
 }
 
-function getThemeConfig() {
-  const root = getComputedStyle(document.documentElement);
-  const isDarkTheme =
-    localStorage.getItem("theme") === "light-theme" ? false : true;
-
-  return {
-    theme: isDarkTheme ? "dark" : "light",
-    backgroundColor: root
-      .getPropertyValue(isDarkTheme ? "--chart-dark-bg" : "--chart-light-bg")
-      .trim(),
-    gridColor: root
-      .getPropertyValue(
-        isDarkTheme ? "--chart-dark-border" : "--chart-light-border"
-      )
-      .trim(),
-  };
-}
+document.addEventListener("DOMContentLoaded", () => {
+  if (query) {
+    fetchCoinInfo(query);
+  } else {
+    window.location.href = "../../index.html";
+  }
+});
